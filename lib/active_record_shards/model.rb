@@ -7,15 +7,18 @@ module ActiveRecordShards
       @sharded = false
     end
 
+    def sharded
+      if self != ActiveRecord::Base && self != base_class
+        raise "You should only call sharded on direct descendants of ActiveRecord::Base"
+      end
+      @sharded = true
+    end
+
     def is_sharded?
       if self == ActiveRecord::Base
         @sharded != false && supports_sharding?
       elsif self == base_class
-        if @sharded.nil?
-          ActiveRecord::Base.is_sharded?
-        else
-          @sharded != false
-        end
+        @sharded == true
       else
         base_class.is_sharded?
       end
