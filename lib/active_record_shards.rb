@@ -66,3 +66,11 @@ ActiveRecord::Base.singleton_class.class_eval do
   end
   alias_method_chain :establish_connection, :connection_pool_name
 end
+
+ActiveRecord::Base.singleton_class.class_eval do
+  def establish_connection_with_adapter_extensions(*args)
+    establish_connection_without_adapter_extensions(*args)
+    ActiveSupport.run_load_hooks(:active_record_connection_established, connection_pool)
+  end
+  alias_method_chain :establish_connection, :adapter_extensions
+end

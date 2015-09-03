@@ -3,6 +3,7 @@ module ActiveRecord
     class << self
       [:up, :down, :run].each do |m|
         define_method("#{m}_with_sharding") do |*args|
+          ActiveRecord::Base.establish_connection_with_adapter_extensions
           ActiveRecord::Base.on_shard(nil) do
             self.send("#{m}_without_sharding", *args)
           end
