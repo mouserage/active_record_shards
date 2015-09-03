@@ -84,18 +84,17 @@ module ActiveRecordShards
   # So we're forced to *either* include or extend this.
   module ActualMigrationExtension
     def migrate_with_forced_shard(direction)
-      if migration_shard.blank?
-        raise RuntimeError, "#{self.name}: Can't run migrations without a shard spec: this may be :all, :none,
-                 or a specific shard (for data-fixups).  please call shard(arg) in your migration."
+      shard = ActiveRecord::Base.current_shard_selection.shard
+      if migration_shard.blank? || migration_shard == :none
+        return unless shard.nil?
+      elsif migration_shard != :all
+        return unless shard.to_s == migration_shard.to_s
       end
 
-      shard = ActiveRecord::Base.current_shard_selection.shard
-
       if shard.nil?
-        return if migration_shard != :none
+        announce "Common database"
       else
-        return if migration_shard == :none
-        return if migration_shard != :all && migration_shard.to_s != shard.to_s
+        announce "Shard #{shard}"
       end
 
       migrate_without_forced_shard(direction)
